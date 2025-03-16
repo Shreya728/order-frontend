@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { TrashIcon } from '@heroicons/react/24/outline'
+import { format, parseISO } from 'date-fns'
+
 
 const API_URL = "https://order-backend-1.onrender.com"
 const axiosInstance = axios.create({
@@ -177,7 +179,7 @@ export default function Home() {
                         <span className="font-medium">Customer:</span> {order.customer_name}
                       </p>
                       <p className="text-sm text-gray-400">
-                        📅 {new Date(order.order_date).toLocaleString()}
+                         📅 {format(parseISO(order.order_date), 'MMM dd, yyyy HH:mm')}
                       </p>
                     </div>
                     <button
