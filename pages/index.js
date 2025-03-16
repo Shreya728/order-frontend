@@ -121,7 +121,7 @@ export default function Home() {
                   placeholder="Customer Name"
                   value={formData.customer_name}
                   onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-3 rounded-lg border border-black-200 focus:ring-2 focus:ring-indigo-500 outline-none"
                   required
                 />
                 <input
@@ -130,7 +130,7 @@ export default function Home() {
                   placeholder="Product Name"
                   value={formData.product_name}
                   onChange={(e) => setFormData({...formData, product_name: e.target.value})}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-3 rounded-lg border border-black-200 focus:ring-2 focus:ring-indigo-500 outline-none"
                   required
                 />
                 <input
@@ -139,7 +139,7 @@ export default function Home() {
                   placeholder="Price"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-3 rounded-lg border border-black-200 focus:ring-2 focus:ring-indigo-500 outline-none"
                   step="0.01"
                   required
                 />
