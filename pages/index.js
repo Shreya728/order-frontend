@@ -2,31 +2,33 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { TrashIcon } from '@heroicons/react/24/outline'
 
+const API_URL = "https://order-backend-1.onrender.com"
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  timeout: 15000
+})
+
 export default function Home() {
+  const [currentView, setCurrentView] = useState('create')
   const [orders, setOrders] = useState([])
   const [formData, setFormData] = useState({
     customer_name: '',
     product_name: '',
     price: 0
   })
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const API_URL = "https://order-backend-1.onrender.com"
-  const axiosInstance = axios.create({
-    baseURL: API_URL,
-    timeout: 30000 // 30 seconds timeout
-  })
-
+  // Fetch orders when switching to view mode
   useEffect(() => {
-    console.log('Component mounted, fetching orders')
-    fetchOrders()
-  }, [])
+    if (currentView === 'view') {
+      fetchOrders()
+    }
+  }, [currentView])
 
   const fetchOrders = async () => {
     try {
       const response = await axiosInstance.get('/orders')
-      console.log('Fetched orders:', response.data)
       setOrders(response.data)
     } catch (error) {
       handleError(error, 'fetching orders')
@@ -37,23 +39,15 @@ export default function Home() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
     try {
       await axiosInstance.post('/order', formData)
-      await fetchOrders()
       setFormData({ customer_name: '', product_name: '', price: 0 })
+      setCurrentView('view') // Switch to view after creation
     } catch (error) {
       handleError(error, 'creating order')
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.name === 'price' ? parseFloat(e.target.value) : e.target.value
-    }))
   }
 
   const deleteOrder = async (id) => {
@@ -66,113 +60,139 @@ export default function Home() {
   }
 
   const handleError = (error, context) => {
-    let errorMessage = `Error ${context}: `
-    
-    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
-      errorMessage += 'Request timed out. Please try again.'
-    } else if (error.response) {
-      errorMessage += error.response.data?.detail || error.response.statusText
-    } else if (error.request) {
-      errorMessage += 'No response from server - check network connection'
+    let message = `Error ${context}: `
+    if (error.response) {
+      message += error.response.data?.detail || error.response.statusText
     } else {
-      errorMessage += error.message
+      message += error.message
     }
-    
-    setError(errorMessage)
-    console.error(errorMessage, error)
+    setError(message)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">
-          🛍️ Order Management System
-        </h1>
-        
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Bar */}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-bold text-gray-800">🛍️ Order Manager</h1>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setCurrentView('create')}
+                className={`px-4 py-2 rounded-lg ${
+                  currentView === 'create' 
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Create Order
+              </button>
+              <button
+                onClick={() => setCurrentView('view')}
+                className={`px-4 py-2 rounded-lg ${
+                  currentView === 'view'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                View Orders
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {error && (
           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
             {error}
           </div>
         )}
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-6">✨ Create New Order</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <input
-                type="text"
-                name="customer_name"
-                placeholder="Customer Name"
-                value={formData.customer_name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-indigo-600 text-gray-900"
-                required
-              />
-              <input
-                type="text"
-                name="product_name"
-                placeholder="Product Name"
-                value={formData.product_name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-indigo-600 text-gray-900"
-                required
-              />
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={formData.price}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder-indigo-600 text-gray-900"
-                step="0.01"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {loading ? 'Creating...' : '➕ Create Order'}
-            </button>
-          </form>
-        </div>
 
-        <div className="space-y-4">
-          {orders.length > 0 ? (
-            orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-6 border border-gray-100">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-800">{order.product_name}</h3>
-                      <span className="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-full">
-                        ${order.price.toFixed(2)}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-1">
-                      <span className="font-medium">Customer:</span> {order.customer_name}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      📅 Ordered: {new Date(order.order_date).toLocaleString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => deleteOrder(order.id)}
-                    className="ml-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors duration-200 flex items-center gap-2"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                    Delete
-                  </button>
-                </div>
+        {currentView === 'create' ? (
+          /* Create Order Form */
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-6">✨ Create New Order</h2>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  name="customer_name"
+                  placeholder="Customer Name"
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  required
+                />
+                <input
+                  type="text"
+                  name="product_name"
+                  placeholder="Product Name"
+                  value={formData.product_name}
+                  onChange={(e) => setFormData({...formData, product_name: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  required
+                />
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="Price"
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  step="0.01"
+                  required
+                />
               </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No orders found. Create one to get started!</p>
-          )}
-        </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? 'Creating...' : 'Create Order'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Orders List */
+          <div className="space-y-4">
+            {orders.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">
+                No orders found. Create one to get started!
+              </p>
+            ) : (
+              orders.map((order) => (
+                <div key={order.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-semibold text-gray-800">{order.product_name}</h3>
+                        <span className="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-full">
+                          ${order.price.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-1">
+                        <span className="font-medium">Customer:</span> {order.customer_name}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        📅 {new Date(order.order_date).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteOrder(order.id)}
+                      className="ml-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center gap-2"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
