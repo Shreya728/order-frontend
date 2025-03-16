@@ -36,7 +36,6 @@ export default function Home() {
     try {
       await axiosInstance.post('/orders', formData)
       setFormData({ customer_name: '', product_name: '', price: '' })
-      // Removed automatic view switch
     } catch (err) {
       handleError(err, 'creating order')
     } finally {
@@ -98,73 +97,48 @@ export default function Home() {
         )}
 
         {view === 'create' ? (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-6">New Order</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Customer Name"
-                value={formData.customer_name}
-                onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                className="w-full p-3 border rounded-lg text-black focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={formData.product_name}
-                onChange={(e) => setFormData({...formData, product_name: e.target.value})}
-                className="w-full p-3 border rounded-lg text-black focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: e.target.value})}
-                className="w-full p-3 border rounded-lg text-black focus:ring-2 focus:ring-indigo-500"
-                step="0.01"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full bg-indigo-600 text-white p-3 rounded-lg ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {loading ? 'Processing...' : 'Create Order'}
-              </button>
-            </form>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md">
+            <input
+              type="text"
+              placeholder="Customer Name"
+              value={formData.customer_name}
+              onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+              className="w-full p-3 border rounded-lg text-black focus:ring-indigo-500"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Product Name"
+              value={formData.product_name}
+              onChange={(e) => setFormData({...formData, product_name: e.target.value})}
+              className="w-full p-3 border rounded-lg text-black focus:ring-indigo-500"
+              required
+            />
+            <input
+              type="number"
+              placeholder="Price"
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              className="w-full p-3 border rounded-lg text-black focus:ring-indigo-500"
+              step="0.01"
+              required
+            />
+            <button type="submit" disabled={loading} className={`w-full bg-indigo-600 text-white p-3 rounded-lg ${loading ? 'opacity-50' : ''}`}>
+              {loading ? 'Processing...' : 'Create Order'}
+            </button>
+          </form>
         ) : (
-          <div className="space-y-4">
-            {orders.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No orders found</p>
-            ) : (
-              orders.map((order) => (
-                <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-xl font-semibold">{order.product_name}</h3>
-                      <p className="text-gray-600">Customer: {order.customer_name}</p>
-                      <p className="text-green-600">${order.price.toFixed(2)}</p>
-                      <p className="text-sm text-gray-400">
-                        {new Date(order.order_date).toLocaleString()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => deleteOrder(order.id)}
-                      className="text-red-600 hover:text-red-800 flex items-center gap-2"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          orders.map((order) => (
+            <div key={order.id} className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div>
+                <h3>{order.product_name}</h3>
+                <p>{order.customer_name}</p>
+                <p>${order.price.toFixed(2)}</p>
+                <p>{new Date(order.order_date).toLocaleString()}</p>
+              </div>
+              <button onClick={() => deleteOrder(order.id)} className="text-red-600">Delete</button>
+            </div>
+          ))
         )}
       </div>
     </div>
