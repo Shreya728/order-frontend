@@ -6,7 +6,6 @@ import { TrashIcon } from '@heroicons/react/24/outline'
 const API_URL = "https://order-backend-1.onrender.com"
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 15000
 })
 
 export default function Home() {
